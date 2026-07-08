@@ -35,8 +35,12 @@ PRESENTATION_CONTEXTS = [
 ]
 
 
-def create_ae(ae_title: str):
+def create_ae(ae_title: str, timeout=10):
     ae = AE(ae_title=ae_title.encode("utf-8"))
+    ae.network_timeout = timeout
+    ae.acse_timeout = timeout
+    ae.dimse_timeout = timeout
+    ae.connection_timeout = timeout
     ae.add_requested_context(Verification)
     ae.add_requested_context(StudyRootQueryRetrieveInformationModelFind)
     ae.add_requested_context(StudyRootQueryRetrieveInformationModelMove)

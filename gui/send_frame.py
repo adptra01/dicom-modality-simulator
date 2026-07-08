@@ -14,12 +14,13 @@ from dicom.mpps import mpps_start, mpps_complete, mpps_discontinued
 
 
 class SendFrame(ttk.LabelFrame):
-    def __init__(self, parent, log_widget, get_config, get_ae, get_selected_patient):
+    def __init__(self, parent, log_widget, get_config, get_ae, get_selected_patient, cancel_event):
         super().__init__(parent, text="Send DICOM", padding=8)
         self._log = log_widget
         self._get_config = get_config
         self._get_ae = get_ae
         self._get_selected_patient = get_selected_patient
+        self._cancel = cancel_event
         self._current_ds = None
         self._current_path = None
         self._mpps_uid = None
@@ -99,6 +100,9 @@ class SendFrame(ttk.LabelFrame):
         threading.Thread(target=self._do_retrieve, args=(patient,), daemon=True).start()
 
     def _do_retrieve(self, patient):
+        if self._cancel.is_set():
+            self.after(0, lambda: self._retrieve_btn.configure(state=tk.NORMAL))
+            return
         from dicom.retrieve import cmove_study
         cfg = self._get_config()
         ae = self._get_ae()
@@ -134,6 +138,9 @@ class SendFrame(ttk.LabelFrame):
         threading.Thread(target=self._do_mpps_start, args=(patient,), daemon=True).start()
 
     def _do_mpps_start(self, patient):
+        if self._cancel.is_set():
+            self.after(0, lambda: self._mpps_start_btn.configure(state=tk.NORMAL))
+            return
         cfg = self._get_config()
         ae = self._get_ae()
         if not ae:
@@ -181,6 +188,8 @@ class SendFrame(ttk.LabelFrame):
         threading.Thread(target=self._do_mpps_end, args=(True,), daemon=True).start()
 
     def _do_mpps_end(self, discontinued):
+        if self._cancel.is_set():
+            return
         cfg = self._get_config()
         ae = self._get_ae()
         try:
@@ -211,6 +220,9 @@ class SendFrame(ttk.LabelFrame):
         threading.Thread(target=self._do_stgcmt, daemon=True).start()
 
     def _do_stgcmt(self):
+        if self._cancel.is_set():
+            self.after(0, lambda: self._stgcmt_btn.configure(state=tk.NORMAL))
+            return
         from dicom.stgcmt import stgcmt_request
         cfg = self._get_config()
         ae = self._get_ae()
@@ -305,6 +317,9 @@ class SendFrame(ttk.LabelFrame):
         threading.Thread(target=self._do_send, args=(ds,), daemon=True).start()
 
     def _do_send(self, ds):
+        if self._cancel.is_set():
+            self.after(0, lambda: self._send_btn.configure(state=tk.NORMAL))
+            return
         cfg = self._get_config()
         ae = self._get_ae()
         if ae is None:

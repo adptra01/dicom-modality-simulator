@@ -8,11 +8,13 @@ from dicom.echo import echo
 
 
 class SettingsFrame(ttk.LabelFrame):
-    def __init__(self, parent, log_widget, on_status):
+    def __init__(self, parent, log_widget, on_status, cancel_event):
         super().__init__(parent, text="PACS Connection", padding=8)
         self._log = log_widget
         self._on_status = on_status
+        self._cancel = cancel_event
         self._ae = None
+        self._assoc = None
         self._cfg = config.load()
         self._create_widgets()
         self._load_config()
@@ -43,6 +45,8 @@ class SettingsFrame(ttk.LabelFrame):
         btn_frame.grid(row=row, column=0, columnspan=2, pady=6)
         self._test_btn = ttk.Button(btn_frame, text="Test Connection", command=self._on_test)
         self._test_btn.pack(side=tk.LEFT, padx=4)
+        self._cancel_btn = ttk.Button(btn_frame, text="Cancel", command=self._on_cancel, state=tk.DISABLED)
+        self._cancel_btn.pack(side=tk.LEFT, padx=4)
         self._save_btn = ttk.Button(btn_frame, text="Save", command=self._on_save)
         self._save_btn.pack(side=tk.LEFT, padx=4)
         self._status_lbl = ttk.Label(btn_frame, text="○ Offline", foreground="gray")
@@ -77,19 +81,36 @@ class SettingsFrame(ttk.LabelFrame):
         config.save(cfg)
         self._log.log_info("Configuration saved")
 
+    def _on_cancel(self):
+        if self._assoc:
+            self._assoc.abort()
+            self._assoc = None
+        self._cancel.set()
+
     def _on_test(self):
+        self._cancel.clear()
         self._test_btn.configure(state=tk.DISABLED)
+        self._cancel_btn.configure(state=tk.NORMAL)
         self._status_lbl.configure(text="⟳ Testing...", foreground="orange")
         self._log.log_info("Testing connection...")
         cfg = self.get_config()
         threading.Thread(target=self._do_test, args=(cfg,), daemon=True).start()
 
     def _do_test(self, cfg):
+        if self._cancel.is_set():
+            self.after(0, lambda: self._reset_test_btn())
+            return
         try:
             ae = create_ae(cfg["ae_title"])
             assoc = associate(ae, cfg["pacs_host"], cfg["pacs_port"], cfg["called_ae"])
+            self._assoc = assoc
+            if self._cancel.is_set():
+                assoc.abort()
+                self.after(0, lambda: self._reset_test_btn())
+                return
             if assoc.is_established:
                 status_code, comment = echo(assoc)
+                self._assoc = None
                 assoc.release()
                 if status_code == 0x0000:
                     self._ae = ae
@@ -103,15 +124,23 @@ class SettingsFrame(ttk.LabelFrame):
                         f"C-ECHO failed: Status 0x{status_code:04X} {comment or ''}"
                     ))
             else:
+                self._assoc = None
                 assoc.release()
                 self._on_status(False)
                 self.after(0, lambda: self._log.log_error(
                     f"Could not associate with {cfg['called_ae']}@{cfg['pacs_host']}:{cfg['pacs_port']}"
                 ))
+        except TimeoutError:
+            self._on_status(False)
+            self.after(0, lambda: self._log.log_error("Connection timed out (10s)"))
         except Exception as e:
             self._on_status(False)
             self.after(0, lambda: self._log.log_error(f"Connection error: {e}"))
         finally:
-            self.after(0, lambda: self._test_btn.configure(state=tk.NORMAL))
-            if not self._ae:
-                self.after(0, lambda: self._status_lbl.configure(text="○ Offline", foreground="gray"))
+            self.after(0, lambda: self._reset_test_btn())
+
+    def _reset_test_btn(self):
+        self._test_btn.configure(state=tk.NORMAL)
+        self._cancel_btn.configure(state=tk.DISABLED)
+        if not self._ae:
+            self._status_lbl.configure(text="○ Offline", foreground="gray")

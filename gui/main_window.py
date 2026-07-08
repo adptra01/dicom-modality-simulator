@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+import threading
 
 from gui.settings_frame import SettingsFrame
 from gui.worklist_frame import WorklistFrame
@@ -17,13 +18,13 @@ class MainWindow(tk.Tk):
         self.minsize(700, 500)
         self._selected_patient = None
         self._connected = False
+        self._cancel_event = threading.Event()
+        self.protocol("WM_DELETE_WINDOW", self._on_close)
         self._create_widgets()
 
     def _create_widgets(self):
-        # Log widget (bottom, full width)
         self.log_widget = LogWidget(self)
 
-        # Middle: send + patient detail
         middle = ttk.Frame(self)
         send_row = ttk.Frame(middle)
         send_row.pack(fill=tk.X)
@@ -34,27 +35,26 @@ class MainWindow(tk.Tk):
             get_config=self._get_config,
             get_ae=self._get_ae,
             get_selected_patient=self._get_selected_patient,
+            cancel_event=self._cancel_event,
         )
         self.send_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(4, 0))
 
-        # SCP (receiver) below
         self.scp_frame = SCPFrame(middle, self.log_widget, get_config=self._get_config)
         self.scp_frame.pack(fill=tk.X, pady=(4, 0))
 
-        # Top: settings
         self.settings = SettingsFrame(
             self, self.log_widget,
             on_status=self._on_connection_status,
+            cancel_event=self._cancel_event,
         )
-        # Worklist
         self.worklist = WorklistFrame(
             self, self.log_widget,
             get_config=self._get_config,
             get_ae=self._get_ae,
             on_select=self._on_patient_select,
+            cancel_event=self._cancel_event,
         )
 
-        # Layout
         self.settings.pack(fill=tk.X, padx=8, pady=(8, 4))
         self.worklist.pack(fill=tk.BOTH, expand=True, padx=8, pady=4)
         middle.pack(fill=tk.X, padx=8, pady=4)
@@ -76,6 +76,13 @@ class MainWindow(tk.Tk):
 
     def _on_connection_status(self, connected):
         self._connected = connected
+
+    def _on_close(self):
+        self._cancel_event.set()
+        self.scp_frame.destroy()
+        for _ in range(5):
+            self.update_idletasks()
+        self.destroy()
 
     def destroy(self):
         self.scp_frame.destroy()

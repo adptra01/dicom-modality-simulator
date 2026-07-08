@@ -1,7 +1,6 @@
 {
   "ae_title": "PZDR",
+  "called_ae": "DCM4CHEE",
   "pacs_host": "localhost",
-  "pacs_port": 11112,
-  "calling_ae": "PZDR",
-  "called_ae": "DCM4CHEE"
+  "pacs_port": 11112
 }
