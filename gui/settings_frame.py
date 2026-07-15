@@ -135,7 +135,8 @@ class SettingsFrame(ttk.LabelFrame):
             self.after(0, lambda: self._log.log_error("Connection timed out (10s)"))
         except Exception as e:
             self._on_status(False)
-            self.after(0, lambda: self._log.log_error(f"Connection error: {e}"))
+            msg = f"Connection error: {e}"
+            self.after(0, lambda m=msg: self._log.log_error(m))
         finally:
             self.after(0, lambda: self._reset_test_btn())
 

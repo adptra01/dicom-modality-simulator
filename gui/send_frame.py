@@ -143,7 +143,8 @@ class SendFrame(ttk.LabelFrame):
             else:
                 self.after(0, lambda: self._log.log_error(f"C-MOVE: 0x{status:04X}"))
         except Exception as e:
-            self.after(0, lambda: self._log.log_error(f"C-MOVE error: {e}"))
+            msg = f"C-MOVE error: {e}"
+            self.after(0, lambda m=msg: self._log.log_error(m))
         self.after(0, lambda: self._retrieve_btn.configure(state=tk.NORMAL))
 
     def _on_mpps_start(self):
@@ -188,7 +189,8 @@ class SendFrame(ttk.LabelFrame):
                 self.after(0, lambda: self._log.log_error(f"MPPS N-CREATE: 0x{status:04X}"))
                 self.after(0, lambda: self._mpps_start_btn.configure(state=tk.NORMAL))
         except Exception as e:
-            self.after(0, lambda: self._log.log_error(f"MPPS error: {e}"))
+            msg = f"MPPS error: {e}"
+            self.after(0, lambda m=msg: self._log.log_error(m))
             self.after(0, lambda: self._mpps_start_btn.configure(state=tk.NORMAL))
 
     def _on_mpps_complete(self):
@@ -230,7 +232,8 @@ class SendFrame(ttk.LabelFrame):
             else:
                 self.after(0, lambda: self._log.log_error(f"MPPS N-SET: 0x{status:04X}"))
         except Exception as e:
-            self.after(0, lambda: self._log.log_error(f"MPPS error: {e}"))
+            msg = f"MPPS error: {e}"
+            self.after(0, lambda m=msg: self._log.log_error(m))
 
     def _on_stgcmt(self):
         if not self._current_ds:
@@ -272,7 +275,8 @@ class SendFrame(ttk.LabelFrame):
             else:
                 self.after(0, lambda: self._log.log_error(f"StgCmt N-ACTION: 0x{status:04X}"))
         except Exception as e:
-            self.after(0, lambda: self._log.log_error(f"StgCmt error: {e}"))
+            msg = f"StgCmt error: {e}"
+            self.after(0, lambda m=msg: self._log.log_error(m))
         self.after(0, lambda: self._stgcmt_btn.configure(state=tk.NORMAL))
 
     def _on_browse(self):
@@ -362,6 +366,7 @@ class SendFrame(ttk.LabelFrame):
                     f"C-STORE failed: Status 0x{status_code:04X} {comment or ''}"
                 ))
         except Exception as e:
-            self.after(0, lambda: self._log.log_error(f"Send error: {e}"))
+            msg = f"Send error: {e}"
+            self.after(0, lambda m=msg: self._log.log_error(m))
         finally:
             self.after(0, lambda: self._send_btn.configure(state=tk.NORMAL))
