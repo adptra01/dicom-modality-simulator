@@ -1,3 +1,4 @@
+from pydicom.dataset import Dataset
 from pynetdicom import AE
 from pynetdicom.sop_class import (
     Verification,
@@ -5,6 +6,7 @@ from pynetdicom.sop_class import (
     StudyRootQueryRetrieveInformationModelMove,
     ModalityPerformedProcedureStep,
     StorageCommitmentPushModel,
+    ModalityWorklistInformationFind,
 )
 
 STORE_CONTEXTS = [
@@ -46,6 +48,7 @@ def create_ae(ae_title: str, timeout=10):
     ae.add_requested_context(StudyRootQueryRetrieveInformationModelMove)
     ae.add_requested_context(ModalityPerformedProcedureStep)
     ae.add_requested_context(StorageCommitmentPushModel)
+    ae.add_requested_context(ModalityWorklistInformationFind)
     for ctx in STORE_CONTEXTS + PRESENTATION_CONTEXTS:
         ae.add_requested_context(ctx)
     return ae
@@ -53,3 +56,15 @@ def create_ae(ae_title: str, timeout=10):
 
 def associate(ae, host, port, called_ae):
     return ae.associate(host, int(port), ae_title=called_ae.encode("utf-8"))
+
+
+def status_code(s):
+    if isinstance(s, Dataset) and 0x00000900 in s:
+        return int(s[0x00000900].value)
+    return int(s) if not isinstance(s, Dataset) else 0xFFFF
+
+
+def check_status(status):
+    if status:
+        return status.Status, status.get("ErrorComment", "")
+    return None, "Association not established"

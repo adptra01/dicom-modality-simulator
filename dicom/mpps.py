@@ -3,11 +3,7 @@ from pydicom.dataset import Dataset
 from pydicom.uid import generate_uid
 from pynetdicom.sop_class import ModalityPerformedProcedureStep
 
-
-def _status_code(s):
-    if isinstance(s, Dataset) and (0x00000900) in s:
-        return int(s[0x00000900].value)
-    return int(s) if not isinstance(s, Dataset) else 0xFFFF
+from dicom.association import status_code as _status_code
 
 
 def mpps_start(assoc, patient_name, patient_id, study_uid, step_id=None, desc=None):

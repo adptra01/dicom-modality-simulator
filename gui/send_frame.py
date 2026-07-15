@@ -11,6 +11,7 @@ from dicom.store import store
 from dicom.dataset import dump_info, set_patient_info
 from dicom.image import jpg_to_dicom
 from dicom.mpps import mpps_start, mpps_complete, mpps_discontinued
+from dicom.notify import update_worklist_status
 
 
 class SendFrame(ttk.LabelFrame):
@@ -20,6 +21,7 @@ class SendFrame(ttk.LabelFrame):
         self._get_config = get_config
         self._get_ae = get_ae
         self._get_selected_patient = get_selected_patient
+        self._cfg = None
         self._cancel = cancel_event
         self._current_ds = None
         self._current_path = None
@@ -75,6 +77,21 @@ class SendFrame(ttk.LabelFrame):
         row += 1
 
         self.columnconfigure(1, weight=1)
+
+    def _notify_worklist(self, status_key):
+        cfg = self._get_config()
+        patient = self._get_selected_patient()
+        if not patient or not patient.accession_number:
+            return
+        ok = update_worklist_status(
+            cfg.get("portal_url", ""),
+            cfg.get("portal_api_key", ""),
+            patient.accession_number,
+            status_key,
+            study_uid=patient.study_instance_uid,
+        )
+        if ok:
+            self._log.log_info(f"Portal notified: {status_key}")
 
     def _merged_ds(self):
         if self._current_ds is None:
@@ -166,6 +183,7 @@ class SendFrame(ttk.LabelFrame):
                 self.after(0, lambda: self._mpps_done_btn.configure(state=tk.NORMAL))
                 self.after(0, lambda: self._mpps_stop_btn.configure(state=tk.NORMAL))
                 self.after(0, lambda: self._stgcmt_btn.configure(state=tk.DISABLED))
+                self.after(0, lambda: self._notify_worklist("in_progress"))
             else:
                 self.after(0, lambda: self._log.log_error(f"MPPS N-CREATE: 0x{status:04X}"))
                 self.after(0, lambda: self._mpps_start_btn.configure(state=tk.NORMAL))
@@ -207,6 +225,8 @@ class SendFrame(ttk.LabelFrame):
                 self.after(0, lambda: self._mpps_lbl.configure(text=f"● {label}", foreground=color))
                 self.after(0, lambda: self._mpps_start_btn.configure(state=tk.NORMAL))
                 self.after(0, lambda: self._stgcmt_btn.configure(state=tk.NORMAL))
+                if not discontinued:
+                    self.after(0, lambda: self._notify_worklist("acquired"))
             else:
                 self.after(0, lambda: self._log.log_error(f"MPPS N-SET: 0x{status:04X}"))
         except Exception as e:
@@ -336,6 +356,7 @@ class SendFrame(ttk.LabelFrame):
             assoc.release()
             if status_code == 0x0000:
                 self.after(0, lambda: self._log.log_ok("C-STORE Success"))
+                self.after(0, lambda: self._notify_worklist("sent_to_pacs"))
             else:
                 self.after(0, lambda: self._log.log_error(
                     f"C-STORE failed: Status 0x{status_code:04X} {comment or ''}"

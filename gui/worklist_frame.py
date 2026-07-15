@@ -33,7 +33,7 @@ class WorklistFrame(ttk.LabelFrame):
                                   height=8, selectmode="browse")
         self._tree.heading("patient_id", text="Patient ID")
         self._tree.heading("patient_name", text="Patient Name")
-        self._tree.heading("study_date", text="Study Date")
+        self._tree.heading("study_date", text="Scheduled")
         self._tree.heading("modality", text="Modality")
         self._tree.heading("accession", text="Accession")
         self._tree.heading("study_desc", text="Description")

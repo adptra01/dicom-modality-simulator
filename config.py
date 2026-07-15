@@ -7,8 +7,9 @@ DEFAULT_CONFIG = {
     "ae_title": "PZDR",
     "pacs_host": "localhost",
     "pacs_port": 11112,
-    "calling_ae": "PZDR",
     "called_ae": "DCM4CHEE",
+    "portal_url": "http://localhost",
+    "portal_api_key": "change-me-in-production",
 }
 
 

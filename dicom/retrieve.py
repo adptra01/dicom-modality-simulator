@@ -1,11 +1,7 @@
-from pydicom.dataset import Dataset, FileDataset
+from pydicom.dataset import Dataset
 from pynetdicom.sop_class import StudyRootQueryRetrieveInformationModelMove
 
-
-def _status_code(s):
-    if isinstance(s, Dataset) and (0x00000900) in s:
-        return int(s[0x00000900].value)
-    return int(s) if not isinstance(s, Dataset) else 0xFFFF
+from dicom.association import status_code as _status_code
 
 
 def cmove_study(assoc, study_uid, dest_ae):

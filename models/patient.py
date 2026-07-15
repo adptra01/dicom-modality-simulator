@@ -1,5 +1,4 @@
-from dataclasses import dataclass, field
-from typing import Optional
+from dataclasses import dataclass
 
 
 @dataclass
@@ -19,4 +18,4 @@ class WorklistItem:
     scheduled_procedure_step_start_date: str = ""
     scheduled_procedure_step_start_time: str = ""
     scheduled_station_ae_title: str = ""
-    raw: dict = field(default_factory=dict)
+

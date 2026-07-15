@@ -1,6 +1,5 @@
 from pydicom.dataset import Dataset
 from pydicom.uid import generate_uid
-from pydicom.sequence import Sequence
 from pynetdicom.sop_class import StorageCommitmentPushModel
 
 SC_SOP_CLASS = "1.2.840.10008.1.20.1"

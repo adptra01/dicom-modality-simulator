@@ -14,7 +14,7 @@ class PatientDetailFrame(ttk.LabelFrame):
             ("Accession:", "accession"),
             ("Study Description:", "study_desc"),
             ("Modality:", "modality"),
-            ("Study Date:", "study_date"),
+            ("Scheduled:", "study_date"),
         ]
         self._labels = {}
         for i, (label, key) in enumerate(fields):
@@ -32,6 +32,3 @@ class PatientDetailFrame(ttk.LabelFrame):
         self._labels["modality"].configure(text=item.modality, foreground="black")
         self._labels["study_date"].configure(text=item.study_date, foreground="black")
 
-    def clear(self):
-        for lbl in self._labels.values():
-            lbl.configure(text="-", foreground="#555")

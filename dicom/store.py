@@ -1,8 +1,5 @@
-from pydicom.dataset import Dataset
+from dicom.association import check_status
 
 
-def store(assoc, ds: Dataset):
-    status = assoc.send_c_store(ds)
-    if status:
-        return status.Status, status.get("ErrorComment", "")
-    return None, "Association not established"
+def store(assoc, ds):
+    return check_status(assoc.send_c_store(ds))

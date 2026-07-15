@@ -1,5 +1,5 @@
+from dicom.association import check_status
+
+
 def echo(assoc):
-    status = assoc.send_c_echo()
-    if status:
-        return status.Status, status.get("ErrorComment", "")
-    return None, "Association not established"
+    return check_status(assoc.send_c_echo())
