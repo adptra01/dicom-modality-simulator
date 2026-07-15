@@ -10,7 +10,7 @@ def mpps_start(assoc, patient_name, patient_id, study_uid, step_id=None, desc=No
     mpps_uid = generate_uid()
     req = Dataset()
     req.PerformedProcedureStepID = step_id or "001"
-    req.PerformedStationAETitle = assoc.ae.ae_title.decode()
+    req.PerformedStationAETitle = assoc.ae.ae_title
     req.PerformedProcedureStepStartDateTime = datetime.now()
     req.PerformedProcedureStepStatus = "IN PROGRESS"
     req.PatientName = patient_name
