@@ -73,7 +73,8 @@ class WorklistFrame(ttk.LabelFrame):
             self.after(0, lambda: self._reset_refresh_btn())
             return
         try:
-            assoc = associate(ae, cfg["pacs_host"], cfg["pacs_port"], cfg["called_ae"])
+            mwl_ae = cfg.get("worklist_ae", "WORKLIST")
+            assoc = associate(ae, cfg["pacs_host"], cfg["pacs_port"], mwl_ae)
             self._assoc = assoc
             if self._cancel.is_set():
                 assoc.abort()

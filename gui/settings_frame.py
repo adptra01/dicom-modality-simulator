@@ -41,6 +41,11 @@ class SettingsFrame(ttk.LabelFrame):
         self._port.grid(row=row, column=1, sticky=tk.EW, padx=4, pady=2)
         row += 1
 
+        ttk.Label(self, text="Worklist AE:").grid(row=row, column=0, sticky=tk.W, padx=4, pady=2)
+        self._worklist_ae = ttk.Entry(self, width=16)
+        self._worklist_ae.grid(row=row, column=1, sticky=tk.EW, padx=4, pady=2)
+        row += 1
+
         btn_frame = ttk.Frame(self)
         btn_frame.grid(row=row, column=0, columnspan=2, pady=6)
         self._test_btn = ttk.Button(btn_frame, text="Test Connection", command=self._on_test)
@@ -64,6 +69,8 @@ class SettingsFrame(ttk.LabelFrame):
         self._host.insert(0, self._cfg.get("pacs_host", "localhost"))
         self._port.delete(0, tk.END)
         self._port.insert(0, str(self._cfg.get("pacs_port", 11112)))
+        self._worklist_ae.delete(0, tk.END)
+        self._worklist_ae.insert(0, self._cfg.get("worklist_ae", "WORKLIST"))
 
     def get_config(self):
         return {
@@ -71,6 +78,7 @@ class SettingsFrame(ttk.LabelFrame):
             "called_ae": self._called_ae.get().strip(),
             "pacs_host": self._host.get().strip(),
             "pacs_port": int(self._port.get().strip()),
+            "worklist_ae": self._worklist_ae.get().strip(),
         }
 
     def get_ae(self):

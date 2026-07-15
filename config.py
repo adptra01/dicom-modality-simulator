@@ -8,6 +8,7 @@ DEFAULT_CONFIG = {
     "pacs_host": "localhost",
     "pacs_port": 11112,
     "called_ae": "DCM4CHEE",
+    "worklist_ae": "WORKLIST",
     "portal_url": "http://localhost",
     "portal_api_key": "change-me-in-production",
 }
